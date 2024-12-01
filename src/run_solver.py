@@ -1,24 +1,52 @@
 from eusolver import DCSolve
 import os
+import re
+
+def parse_sygus_benchmark(file_path):
+    components = {
+        "term_grammar": [],
+        "predicate_grammar": [],
+        "spec": []
+    }
+
+    with open(file_path, 'r') as file:
+        lines = file.readlines()
+    nt_string_section = False
+    nt_bool_section = False
+    for line in lines:
+        line = line.strip()
+
+        if "(ntString" in line:
+            nt_string_section = True
+        elif nt_string_section and re.match(r"\(nt(Int|Bool)", line):
+            nt_string_section = False
+        if nt_string_section and line.__len__() > 0:
+            components["term_grammar"].append(line)
+        if "(ntBool" in line:
+            nt_bool_section = True
+        elif nt_bool_section and line.startswith("(declare-var"):
+            nt_bool_section = False
+        if nt_bool_section and line.__len__() > 0:
+            components["predicate_grammar"].append(line)
+        elif line.startswith("(constraint"):
+            constraint = line.replace("(constraint ", "").rstrip(")")
+            components["spec"].append(constraint)
+
+    return components
+
 
 def load_benchmark(file_path):
     with open(file_path, 'r') as file:
         return file.read()
 
 def benchmark_test():
-    # Define the path to the benchmark file
-    benchmark_file = os.path.join('src', 'benchmarks', 'firstname.sl')
+    benchmark_file = './benchmarks/initials.sl'
 
-    # Load the benchmark constraints
-    
+    components = parse_sygus_benchmark(benchmark_file)
+    print(components)
+    solver = DCSolve(components.term_grammr, components.predicate_grammar, components.spec)
 
-    # Initialize the DCSolve instance
-    solver = DCSolve(term_grammer, predicate_grammar, spec)
-
-    # Run the solver
     result = solver.solve()
-
-    # Print the result
     print("Result of the benchmark test:", result)
 
 if __name__ == "__main__":
