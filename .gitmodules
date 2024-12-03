@@ -1,0 +1,3 @@
+[submodule "synthlib2parser"]
+	path = synthlib2parser
+	url = https://github.com/sygus-tools/synthlib2parser.git
