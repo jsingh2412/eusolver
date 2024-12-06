@@ -2,7 +2,7 @@ from eusolver import DCSolve
 import ctypes
 
 # Load the SynthLib2Parser shared library
-synthlib2parser = ctypes.CDLL('../../synthlib2parser/lib/debug/libsynthlib2parser.so')
+synthlib2parser = ctypes.CDLL('./parser/libsynthlib2parser.so')
 
 # Define the function prototypes
 synthlib2parser.SynthLib2Parser_new.restype = ctypes.c_void_p
