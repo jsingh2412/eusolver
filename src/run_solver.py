@@ -1,50 +1,40 @@
 from eusolver import DCSolve
-import os
-import re
+import ctypes
+
+# Load the SynthLib2Parser shared library
+synthlib2parser = ctypes.CDLL('../../synthlib2parser/lib/debug/libsynthlib2parser.so')
+
+# Define the function prototypes
+synthlib2parser.SynthLib2Parser_new.restype = ctypes.c_void_p
+synthlib2parser.SynthLib2Parser_delete.argtypes = [ctypes.c_void_p]
+synthlib2parser.SynthLib2Parser_parse.argtypes = [ctypes.c_void_p, ctypes.c_char_p]
+synthlib2parser.SynthLib2Parser_get_program.restype = ctypes.c_char_p
+synthlib2parser.SynthLib2Parser_get_program.argtypes = [ctypes.c_void_p]
 
 def parse_sygus_benchmark(file_path):
-    components = {
-        "term_grammar": [],
-        "predicate_grammar": [],
-        "spec": []
-    }
+    # Create a new parser instance
+    parser = synthlib2parser.SynthLib2Parser_new()
 
-    with open(file_path, 'r') as file:
-        lines = file.readlines()
-    nt_string_section = False
-    nt_bool_section = False
-    for line in lines:
-        line = line.strip()
+    # Parse the file
+    synthlib2parser.SynthLib2Parser_parse(parser, file_path.encode('utf-8'))
 
-        if "(ntString" in line:
-            nt_string_section = True
-        elif nt_string_section and re.match(r"\(nt(Int|Bool)", line):
-            nt_string_section = False
-        if nt_string_section and line.__len__() > 0:
-            components["term_grammar"].append(line)
-        if "(ntBool" in line:
-            nt_bool_section = True
-        elif nt_bool_section and line.startswith("(declare-var"):
-            nt_bool_section = False
-        if nt_bool_section and line.__len__() > 0:
-            components["predicate_grammar"].append(line)
-        elif line.startswith("(constraint"):
-            constraint = line.replace("(constraint ", "").rstrip(")")
-            components["spec"].append(constraint)
+    # Get the parsed program
+    program = synthlib2parser.SynthLib2Parser_get_program(parser)
 
-    return components
+    # Delete the parser instance
+    synthlib2parser.SynthLib2Parser_delete(parser)
 
+    return program
 
 def load_benchmark(file_path):
-    with open(file_path, 'r') as file:
-        return file.read()
+    return parse_sygus_benchmark(file_path)
 
 def benchmark_test():
     benchmark_file = './benchmarks/initials.sl'
 
-    components = parse_sygus_benchmark(benchmark_file)
+    components = load_benchmark(benchmark_file)
     print(components)
-    solver = DCSolve(components.term_grammr, components.predicate_grammar, components.spec)
+    solver = DCSolve(components.term_grammar, components.predicate_grammar, components.spec)
 
     result = solver.solve()
     print("Result of the benchmark test:", result)
