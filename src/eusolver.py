@@ -1,3 +1,6 @@
+from parsers.ast import ConstraintCommand, SynthFunCommand, IdentifierTerm, LiteralTerm, FunctionApplicationTerm
+import itertools
+
 class DCSolve:
     def __init__(self, term_grammar, predicate_grammar, spec):
         self.term_grammar = term_grammar
@@ -49,15 +52,29 @@ class DCSolve:
             self.points.add(cexpt)
 
     def next_distinct_term(self, pts, terms, cover):
+        def enumerate_terms(self):
+            terms = set()
+            basic_terms = []
+            operators = []
+            for term in self.term_grammar:
+                if isinstance(term, FunctionApplicationTerm):
+                    operators.append(term.function_identifier.symbol)
+                else:
+                    basic_terms.append(term)
+
+            for t in basic_terms:
+                terms.add(t)
+
+            for t1, t2 in itertools.product(basic_terms, repeat=2):
+                for op in operators:
+                    terms.add(f"({t1} {op} {t2})")
+                    terms.add(f"({op} {t1} {t2})")
+            return terms
         while True:
-            t = self.enumerate_terms(pts)
+            t = enumerate_terms(self)
             cover[t] = {pt for pt in pts if self.satisfies(t, pt)}
             if all(cover[t] != cover[t_prime] for t_prime in terms):
                 return t
-
-    def enumerate_terms(self, pts):
-        # Implement the logic to enumerate terms based on pts
-        pass
 
     def satisfies(self, term, pt):
         # Implement the logic to check if term satisfies the point pt
