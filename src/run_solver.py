@@ -49,6 +49,8 @@ def benchmark_test():
     predicate_grammar = []
     startbool_symbol_found = False
     for grouped_rule_list in synthfun.synthesis_grammar.grouped_rule_lists.values():
+        start_symbol_found = False
+        startbool_symbol_found = False
         if(grouped_rule_list.head_symbol == "Start"):
             print("Start")
             start_symbol_found = True
@@ -60,13 +62,13 @@ def benchmark_test():
         for grammar in grouped_rule_list.expansion_rules:
             term = grammar.binder_free_term
             if isinstance(term, IdentifierTerm):
-                print(term.identifier)
+                #print(term.identifier)
                 if start_symbol_found:
-                    term_grammar.append(term.identifier)
+                    term_grammar.append(term.identifier.symbol)
                 elif startbool_symbol_found:
-                    predicate_grammar.append(term.identifier)
+                    predicate_grammar.append(term.identifier.symbol)
             if isinstance(term, LiteralTerm):
-                print(term.literal.literal_value, term.literal.literal_kind)
+                #print(term.literal.literal_value, term.literal.literal_kind)
                 if start_symbol_found:
                     term_grammar.append(term.literal.literal_value)
                 elif startbool_symbol_found:
@@ -76,9 +78,12 @@ def benchmark_test():
                     term_grammar.append(term)
                 elif startbool_symbol_found:
                     predicate_grammar.append(term)
-                print(term.function_identifier)
-                for term in term.arguments: print(term.identifier)
-
+                #print(term.function_identifier)
+                #for term in term.arguments: print(term.identifier)
+    print("Starting Solver:")
+    print("Term Grammar:", term_grammar)
+    print("Predicate Grammar:", predicate_grammar)
+    print("Spec:", spec)
     solver = DCSolve(term_grammar, predicate_grammar, spec)
     result = solver.solve()
     # print("Result of the benchmark test:", result)
