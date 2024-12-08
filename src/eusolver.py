@@ -8,7 +8,7 @@ class DCSolve:
         self.predicates = set()
         self.cover = {}
 
-    def solve(self, task):
+    def solve(self):
         # Ensure: Expression e s.t. e ∈ [[G]] ∧ e |= Φ
         # 1: pts ← ∅
         # 2: while true do
@@ -35,6 +35,7 @@ class DCSolve:
             # Term solver
             while any(self.cover[t] != self.points for t in self.terms):
                 self.terms.add(self.next_distinct_term(self.points, self.terms, self.cover))
+            print(self.terms)
             # Unifier
             while decision_tree is None:
                 self.terms.add(self.next_distinct_term(self.points, self.terms, self.cover))
