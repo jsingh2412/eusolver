@@ -10,6 +10,9 @@ class DCSolve:
         self.terms = set()
         self.predicates = set()
         self.cover = {}
+        self.operators = ['+', '-', '*', '=', '<', '!=', '<=', '>', '>=']
+        self.basic_terms = []
+        self.finding_first_term = True
 
     def solve(self):
         # Ensure: Expression e s.t. e ∈ [[G]] ∧ e |= Φ
@@ -36,9 +39,7 @@ class DCSolve:
             self.cover.clear()
             decision_tree = None
             # Term solver
-            while any(self.cover[t] != self.points for t in self.terms):
-                self.terms.add(self.next_distinct_term(self.points, self.terms, self.cover))
-            print(self.terms)
+            self.term_solver()
             # Unifier
             while decision_tree is None:
                 self.terms.add(self.next_distinct_term(self.points, self.terms, self.cover))
@@ -51,25 +52,27 @@ class DCSolve:
                 return e
             self.points.add(cexpt)
 
+    def term_solver(self):
+        while any(self.cover[t] != self.points for t in self.terms):
+                self.terms.add(self.next_distinct_term(self.points, self.terms, self.cover))
+        return
+
     def next_distinct_term(self, pts, terms, cover):
         def enumerate_terms(self):
-            terms = set()
-            basic_terms = []
-            operators = []
-            for term in self.term_grammar:
-                if isinstance(term, FunctionApplicationTerm):
-                    operators.append(term.function_identifier.symbol)
-                else:
-                    basic_terms.append(term)
+            if self.finding_first_term:
+                for term in self.term_grammar:
+                    if isinstance(term, FunctionApplicationTerm) :
+                        if term.function_identifier.symbol not in self.operators: 
+                            self.operators.append(term.function_identifier.symbol)
+                    else:
+                        self.basic_terms.append(term)
 
-            for t in basic_terms:
+            for t in self.basic_terms:
                 terms.add(t)
 
-            for t1, t2 in itertools.product(basic_terms, repeat=2):
-                for op in operators:
-                    terms.add(f"({t1} {op} {t2})")
+            for t1, t2 in itertools.product(self.basic_terms, repeat=2):
+                for op in self.operators:
                     terms.add(f"({op} {t1} {t2})")
-            return terms
         while True:
             t = enumerate_terms(self)
             cover[t] = {pt for pt in pts if self.satisfies(t, pt)}

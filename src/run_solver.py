@@ -91,7 +91,7 @@ def benchmark_test():
     print("Spec:", spec)
     solver = DCSolve(term_grammar, predicate_grammar, spec)
     result = solver.solve()
-    # print("Result of the benchmark test:", result)
+    print("Result of the benchmark test:", result)
 
 if __name__ == "__main__":
     benchmark_test()
