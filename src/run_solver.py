@@ -4,7 +4,7 @@ from parsers.printer import SygusV2ASTPrinter
 from parsers.processor import SygusV2Processor
 from pprint import pprint
 from parsers.ast import ConstraintCommand, SynthFunCommand, IdentifierTerm, LiteralTerm, FunctionApplicationTerm
-
+from parsers.ast import Program
 def load_benchmark(file_path):
     parser = SygusV2Parser()
     with open(file_path, 'r') as file:
@@ -12,22 +12,7 @@ def load_benchmark(file_path):
     result = parser.parse(data)
     return result
 
-def benchmark_test():
-    benchmark_file = './benchmarks/s1.sl'
-
-    program = load_benchmark(benchmark_file)
-    # program_str = SygusV2ASTPrinter.run(program, None)
-    # print attributes of program object
-    # for attr in dir(program):
-    #     print("obj.%s = %r" % (attr, getattr(program, attr)))
-    # each none empty line is a command, representated by a class in the ast file
-    # print(program.commands)
-    setlogic = program.commands[0]
-    if(setlogic.logic_name == "LIA"):
-        print("Logic is LIA")
-    else:
-        raise ValueError("Solver is not capable of handling this logic.")
-
+def extract_args(program):
     synthfun = None
     spec = []
     for command in program.commands:
@@ -36,7 +21,7 @@ def benchmark_test():
         if isinstance(command, ConstraintCommand):
             spec.append(command)
     if synthfun is None:
-        raise ValueError("No synthesis function found in the benchmark file.")
+        raise ValueError("[run_solver.extract_args] No synthesis function found in the benchmark file.")
     #pprint(synthfun.synthesis_grammar.grouped_rule_lists)
     # for rule in synthfun.synthesis_grammar.grouped_rule_lists:
     #     print(synthfun.synthesis_grammar)
@@ -58,7 +43,7 @@ def benchmark_test():
             print("StartBool")
             startbool_symbol_found = True
         else:
-            raise ValueError("Unknown head symbol.")
+            raise ValueError("[run_solver.extract_args] Unknown head symbol.")
         for grammar in grouped_rule_list.expansion_rules:
             term = grammar.binder_free_term
             if isinstance(term, IdentifierTerm):
@@ -80,6 +65,26 @@ def benchmark_test():
                     predicate_grammar.append(term)
                 #print(term.function_identifier)
                 #for term in term.arguments: print(term.identifier)
+    return term_grammar, predicate_grammar, spec
+
+def benchmark_test():
+    benchmark_file = './benchmarks/s1.sl'
+
+    program = load_benchmark(benchmark_file)
+    # program_str = SygusV2ASTPrinter.run(program, None)
+    # print attributes of program object
+    # for attr in dir(program):
+    #     print("obj.%s = %r" % (attr, getattr(program, attr)))
+    # each none empty line is a command, representated by a class in the ast file
+    # print(program.commands)
+    setlogic = program.commands[0]
+    if(setlogic.logic_name == "LIA"):
+        print("Logic is LIA")
+    else:
+        raise ValueError("[run_solver.benchmark_test] Solver is not capable of handling this logic.")
+
+    term_grammar, predicate_grammar, spec = extract_args(program)
+
     print("Starting Solver:")
     print("Term Grammar:", term_grammar)
     print("Predicate Grammar:", predicate_grammar)
