@@ -2,9 +2,10 @@ from eusolver import DCSolve
 from parsers.parser import SygusV2Parser
 from parsers.printer import SygusV2ASTPrinter
 from parsers.processor import SygusV2Processor
-from pprint import pprint
 from parsers.ast import ConstraintCommand, SynthFunCommand, IdentifierTerm, LiteralTerm, FunctionApplicationTerm
-from parsers.ast import Program
+
+# constraint that was temporarily removed from the .sl file: (constraint (or (and (> x 5) (= (f x) x)) (<= x 5)))
+
 def load_benchmark(file_path):
     parser = SygusV2Parser()
     with open(file_path, 'r') as file:
@@ -27,8 +28,8 @@ def extract_args(program):
     #     print(synthfun.synthesis_grammar)
     # synthfun_str = SygusV2ASTPrinter.run(synthfun, None)
     # print(synthfun_str)
-    for terminal in synthfun.synthesis_grammar.nonterminals:
-        print(terminal)
+    # for terminal in synthfun.synthesis_grammar.nonterminals:
+    #     print(terminal)
     term_grammar = []
     start_symbol_found = False
     predicate_grammar = []
@@ -37,10 +38,8 @@ def extract_args(program):
         start_symbol_found = False
         startbool_symbol_found = False
         if(grouped_rule_list.head_symbol == "Start"):
-            print("Start")
             start_symbol_found = True
         elif(grouped_rule_list.head_symbol == "StartBool"):
-            print("StartBool")
             startbool_symbol_found = True
         else:
             raise ValueError("[run_solver.extract_args] Unknown head symbol.")
@@ -59,10 +58,15 @@ def extract_args(program):
                 elif startbool_symbol_found:
                     predicate_grammar.append(term.literal.literal_value)
             if isinstance(term, FunctionApplicationTerm):
+                negative_number_found = False
+                if(term.arguments.__len__() == 1 and isinstance(term.arguments[0], LiteralTerm)):
+                    negative_number_found = True
                 if start_symbol_found:
-                    term_grammar.append(term)
+                    if(negative_number_found): term_grammar.append(0 - term.arguments[0].literal.literal_value)
+                    else: term_grammar.append(term)
                 elif startbool_symbol_found:
-                    predicate_grammar.append(term)
+                    if(negative_number_found): term_grammar.append(0 - term.arguments[0].literal.literal_value)
+                    else: predicate_grammar.append(term)
                 #print(term.function_identifier)
                 #for term in term.arguments: print(term.identifier)
     return term_grammar, predicate_grammar, spec

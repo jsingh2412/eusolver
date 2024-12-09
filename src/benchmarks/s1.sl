@@ -12,6 +12,7 @@
 (constraint (= (f 3) 30))
 (constraint (= (f 4) 40))
 (constraint (= (f 5) 50))
-(constraint (or (and (> x 5) (= (f x) x)) (<= x 5)))
+(constraint (= (f 6) 6))
+(constraint (= (f 10) 10))
 
 (check-synth)
