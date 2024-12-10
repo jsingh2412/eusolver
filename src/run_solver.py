@@ -72,7 +72,7 @@ def extract_args(program):
     return term_grammar, predicate_grammar, spec
 
 def benchmark_test():
-    benchmark_file = './benchmarks/s1.sl'
+    benchmark_file = './benchmarks/s2.sl'
 
     program = load_benchmark(benchmark_file)
     # program_str = SygusV2ASTPrinter.run(program, None)

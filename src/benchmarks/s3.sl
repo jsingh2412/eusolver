@@ -3,7 +3,7 @@
 (synth-fun f ((x Int)) Int
     ((Start Int) (StartBool Bool))
     ((Start Int (x 0 10 20 30 40 50 60 70 80 90 100 (+ Start Start) (- Start Start) (ite StartBool Start Start)))
-    (StartBool Bool ((and StartBool StartBool) (or StartBool StartBool) (not StartBool) (<= Start Start) (= Start Start) (>= Start Start)))))
+    (StartBool Bool ((= Start Start)))))
 
 (declare-var x Int)
 (constraint (= (f 0) 0))
