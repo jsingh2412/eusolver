@@ -1,5 +1,7 @@
 from parsers.ast import LiteralTerm, FunctionApplicationTerm
 from termsolver import TermSolver
+from unifier import LIAUnifier
+import decisiontree
 
 class DCSolve:
     def __init__(self, term_grammar, predicate_grammar, spec):
@@ -10,6 +12,7 @@ class DCSolve:
         self.terms = []
         self.predicates = []
         self.cover = {}
+        self.first_point_generation = True
 
     def solve(self):
         # Ensure: Expression e s.t. e ∈ [[G]] ∧ e |= Φ
@@ -35,25 +38,33 @@ class DCSolve:
             # self.cover.clear()
             decision_tree = None
             self.generate_pts()
-            print(self.points)
+            print('points',self.points)
             # Term solver
             termsolver = TermSolver(self.term_grammar, self.points, self.cover, self.terms)
             self.terms = termsolver.solve()
-            print(self.terms)
+            print('terms', self.terms)
             # Unifier
+            unifier = LIAUnifier(self.predicate_grammar, self.points)
+            pred = unifier.generate_preds(self.term_grammar, ret_one=True)
+            print('pred', pred)
+            # unifier.reset()
+            # allpreds = unifier.generate_preds(self.term_grammar, ret_one=False)
+            # print('allpreds', allpreds)
             while decision_tree is None:
-                self.terms.append(self.next_distinct_term())
-                self.predicates.update(self.enumerate_predicates(self.points))
-                decision_tree = self.learn_decision_tree(self.terms, self.predicates)
+                # self.predicates = unifier.generate_preds(self.term_grammar, ret_one=False)
+                decision_tree = decisiontree.learn_decision_tree(self.terms, pred, self.points)
+                self.terms = termsolver.generate_more_terms()
             # Verifier
-            e = self.expr(decision_tree)
-            cexpt = self.verify(e, self.spec)
-            if cexpt is None:
-                return e
-            self.points.add(cexpt)
+            verifier, counterexample = decisiontree.verify_decision_tree(decision_tree, self.points, self.spec)
+            if(verifier):
+                decisiontree.print_decision_tree(decision_tree.root)
+                return decision_tree
+            self.points.append(counterexample)
 
     def generate_pts(self):
         print('generate_pts')
+        if not self.first_point_generation: return
+        self.first_point_generation = False
         self.points = []
         for constraint in self.spec:
             if(constraint.constraint.function_identifier.symbol == "="):
@@ -62,7 +73,8 @@ class DCSolve:
                     self.points.append((args[0].arguments[0].literal.literal_value, args[1].literal.literal_value))
                 elif isinstance(args[1], FunctionApplicationTerm) and isinstance(args[0], LiteralTerm):
                     self.points.append((args[1].arguments[0].literal.literal_value, args[0].literal.literal_value))
-        return
+            else:
+                raise ValueError("Unsupported constraint type")
 
 def satisfies(term, pt):
         if (type(term)== str and term.find('x') != -1):
@@ -91,7 +103,6 @@ def eval_sygus(expr, variables):
         op = tokens[0]
         term1 = tokens[1]
         term2 = tokens[2] if len(tokens) > 2 else None
-
         # Recursive evaluation of terms
         value1 = eval_sygus(term1, variables) if term1 else None
         value2 = eval_sygus(term2, variables) if term2 else None
@@ -103,8 +114,6 @@ def eval_sygus(expr, variables):
             return value1 - value2
         elif op == "*":
             return value1 * value2
-        elif op == "/":
-            return value1 // value2  # Integer division
         elif op == "<=":
             return value1 <= value2
         elif op == ">=":
@@ -122,6 +131,6 @@ def eval_sygus(expr, variables):
         #     condition = value1
         #     true_expr = tokens[2].split(" ", 1)[0]
         #     false_expr = tokens[2].split(" ", 1)[1]
-        #     return self.eval_sygus(true_expr, variables) if condition else self.eval_sygus(false_expr, variables)
+        #     return eval_sygus(true_expr, variables) if condition else eval_sygus(false_expr, variables)
 
         raise ValueError(f"Unsupported operation: {op}")

@@ -43,6 +43,8 @@ class TermSolver:
                             return term
         while True:
             t = enumerate_terms(self)
+            if t is None:
+                return None
             if all(self.cover[t] != self.cover[t_prime] for t_prime in self.terms):
                 self.cover[t] = {pt for pt in self.points if eusolver.satisfies(t, pt)}
                 print("RETURNING T:",t)
@@ -74,3 +76,9 @@ class TermSolver:
             if covered_points == set(self.points):
                 break
         return self.terms
+    def generate_more_terms(self):
+        while True:
+            new_term = self.next_distinct_term()
+            if new_term is not None:
+                self.terms.append(new_term)
+            else: break
