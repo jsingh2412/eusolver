@@ -38,27 +38,25 @@ class DecisionTree:
 
     def _evaluate_recursive(self, node, x, y):
         if node.is_leaf():
-            return eval_safe(node.term, x, y)
-        if eval_safe(node.predicate, x, y):
+            eval_result = eval(node.term.replace('x', str(x)))
+            return eval_result == y
+        eval_result = eval(node.predicate.replace('x', str(x)))
+        if eval_result:
             return self._evaluate_recursive(node.left, x, y)
         else:
             return self._evaluate_recursive(node.right, x, y)
 
-def verify_decision_tree(dt, pts, spec):
-    print_decision_tree(dt.root)
+def verify_decision_tree(dt, pts):
+    print('VERIFYING')
     for x, y in pts:
         result = dt.evaluate(x, y)
-        print('result', result)
-        if not eval_safe(spec, x, y, result):
+        if not result:
             return False, (x, y)
     return True, None
 
-def eval_safe(expr, x, y, result=None):
+def eval_safe(expr, x, y):
     try:
-        if result is not None:
-            return eval(expr.replace('x', str(x)).replace('y', str(y)).replace('result', str(result)))
-        else:
-            return eval(expr.replace('x', str(x)).replace('y', str(y)))
+        return eval(expr.replace('x', str(x)).replace('y', str(y)))
     except:
         return False
 
@@ -80,11 +78,8 @@ def learn_decision_tree(terms, predicates, pts):
     dt = DecisionTree()
     for predicate in predicates:
         # Split points based on predicate
-        print('predicate:', predicate)
         left_pts = [pt for pt in pts if eval_safe(predicate, *pt)]
         right_pts = [pt for pt in pts if not eval_safe(predicate, *pt)]
-        print('left_pts:', left_pts)
-        print('right_pts:', right_pts)
         # Choose terms for left and right leaves
         left_term = choose_best_term(terms, left_pts)
         right_term = choose_best_term(terms, right_pts)
