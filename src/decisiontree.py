@@ -45,9 +45,10 @@ class DecisionTree:
             return self._evaluate_recursive(node.right, x, y)
 
 def verify_decision_tree(dt, pts, spec):
+    print_decision_tree(dt.root)
     for x, y in pts:
         result = dt.evaluate(x, y)
-        print(result)
+        print('result', result)
         if not eval_safe(spec, x, y, result):
             return False, (x, y)
     return True, None
@@ -67,11 +68,11 @@ def choose_best_term(terms, pts):
             term_str = str(term)
             correct = True
             for pt in pts:
-                if eval(term_str.replace('x', str(pt[1]))):
+                evaluated = eval(term_str.replace('x', str(pt[0])))
+                if evaluated != pt[1]:
                     correct = False
                     break
             if correct:
-                print(term)
                 return term
         return None
 
@@ -79,15 +80,16 @@ def learn_decision_tree(terms, predicates, pts):
     dt = DecisionTree()
     for predicate in predicates:
         # Split points based on predicate
+        print('predicate:', predicate)
         left_pts = [pt for pt in pts if eval_safe(predicate, *pt)]
         right_pts = [pt for pt in pts if not eval_safe(predicate, *pt)]
-
+        print('left_pts:', left_pts)
+        print('right_pts:', right_pts)
         # Choose terms for left and right leaves
         left_term = choose_best_term(terms, left_pts)
         right_term = choose_best_term(terms, right_pts)
         if left_term is None or right_term is None:
             return None
-
         dt.add_node(predicate, left_term, right_term)
 
     return dt

@@ -40,9 +40,10 @@ class DCSolve:
             self.generate_pts()
             print('points',self.points)
             # Term solver
-            termsolver = TermSolver(self.term_grammar, self.points, self.cover, self.terms)
+            termsolver = TermSolver(self.term_grammar, self.points, self.terms)
             self.terms = termsolver.solve()
-            print('terms', self.terms)
+            termsolver.reset()
+            print('eusolver terms:', self.terms)
             # Unifier
             unifier = LIAUnifier(self.predicate_grammar, self.points)
             pred = unifier.generate_preds(self.term_grammar, ret_one=True)
@@ -52,13 +53,17 @@ class DCSolve:
             # print('allpreds', allpreds)
             while decision_tree is None:
                 # self.predicates = unifier.generate_preds(self.term_grammar, ret_one=False)
-                decision_tree = decisiontree.learn_decision_tree(self.terms, pred, self.points)
-                self.terms = termsolver.generate_more_terms()
+                decision_tree = decisiontree.learn_decision_tree(self.terms, [pred], self.points)
+                if decision_tree is not None: decisiontree.print_decision_tree(decision_tree.root)
+                new_term = termsolver.next_distinct_term(get_all=True)
+                if new_term is not None: self.terms.append(new_term)
+                print('terms',self.terms)
             # Verifier
             verifier, counterexample = decisiontree.verify_decision_tree(decision_tree, self.points, self.spec)
             if(verifier):
                 decisiontree.print_decision_tree(decision_tree.root)
                 return decision_tree
+            print('counterexample', counterexample)
             self.points.append(counterexample)
 
     def generate_pts(self):
