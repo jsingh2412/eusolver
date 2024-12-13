@@ -9,11 +9,7 @@ class Node:
         return self.term is not None
 
 class DecisionTree:
-    def __init__(self): #term_grammar, points, cover, terms
-        # self.term_grammar = term_grammar
-        # self.points = points
-        # self.cover = cover
-        # self.terms = terms
+    def __init__(self):
         self.root = None
 
     def add_node(self, predicate, term_true, term_false):
@@ -47,7 +43,6 @@ class DecisionTree:
             return self._evaluate_recursive(node.right, x, y)
 
 def verify_decision_tree(dt, pts):
-    print('VERIFYING')
     for x, y in pts:
         result = dt.evaluate(x, y)
         if not result:
@@ -101,6 +96,13 @@ def print_decision_tree(node, depth=0):
         print_decision_tree(node.left, depth + 1)
         print(f"{indent}Right:")
         print_decision_tree(node.right, depth + 1)
+
+def decision_tree_to_ite_expression(node):
+    if node.is_leaf():
+        return node.term
+    left_expr = decision_tree_to_ite_expression(node.left)
+    right_expr = decision_tree_to_ite_expression(node.right)
+    return f"if ({node.predicate}) then ({left_expr}) else ({right_expr})"
 
 # pts = [(0, 0), (1, 10), (2, 20), (3, 30), (4, 40), (5, 5), (6, 6), (7, 7), (10, 10)]
 # terms = ['x', 10, 20, 30, 40, 50]

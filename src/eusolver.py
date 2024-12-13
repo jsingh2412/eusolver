@@ -38,7 +38,7 @@ class DCSolve:
             # self.cover.clear()
             decision_tree = None
             self.generate_pts()
-            # print('points',self.points)
+            print('points',self.points)
             # Term solver
             termsolver = TermSolver(self.term_grammar, self.points, self.terms)
             self.terms = termsolver.solve()
@@ -64,12 +64,13 @@ class DCSolve:
             verifier, counterexample = decisiontree.verify_decision_tree(decision_tree, self.points)
             if(verifier):
                 decisiontree.print_decision_tree(decision_tree.root)
-                return decision_tree
+                expr = decisiontree.decision_tree_to_ite_expression(decision_tree.root)
+                return expr
             # print('counterexample', counterexample)
             self.points.append(counterexample)
 
     def generate_pts(self):
-        # print('generate_pts')
+        print('generate_pts')
         if not self.first_point_generation: return
         self.first_point_generation = False
         self.points = []
