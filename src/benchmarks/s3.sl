@@ -1,21 +1,12 @@
 (set-logic LIA)
 
-(synth-fun f ((x Int)) Int
+(synth-fun f ((x Int) (y Int)) Int
     ((Start Int) (StartBool Bool))
-    ((Start Int (x 0 10 20 30 40 50 60 70 80 90 100 (+ Start Start) (- Start Start) (ite StartBool Start Start)))
-    (StartBool Bool ((= Start Start)))))
+    ((Start Int (x y 0 1 (- 1) 2 (- 2) (+ Start Start) (- Start Start) (ite StartBool Start Start)))
+    (StartBool Bool ((and StartBool StartBool) (or StartBool StartBool) (not StartBool) (<= Start Start) (= Start Start) (>= Start Start)))))
 
 (declare-var x Int)
-(constraint (= (f 0) 0))
-(constraint (= (f 1) 10))
-(constraint (= (f 2) 20))
-(constraint (= (f 3) 30))
-(constraint (= (f 4) 40))
-(constraint (= (f 5) 50))
-(constraint (= (f 6) 6))
-(constraint (= (f 7) 7))
-(constraint (= (f 8) 8))
-(constraint (= (f 9) 9))
-(constraint (= (f 10) 10))
+(declare-var y Int)
+(constraint (or (and (= x y) (= (f x y) 0)) (or (and (> x y) (= (f x y) 1)) (= (f x y) (- 1)))))
 
 (check-synth)
